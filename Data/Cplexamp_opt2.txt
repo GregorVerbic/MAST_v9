@@ -1,0 +1,1 @@
+mipdisplay=2 mipgap=1e-2  integrality=1e-24

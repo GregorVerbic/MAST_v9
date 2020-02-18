@@ -83,8 +83,9 @@ df.addColumn('Units',Gen.N_units);
 % setting data frame to set UGen 
 ampl.setData(df,'UGen');  
 
-ampl.getParameter('Status_ini').setValues(RH.Ini.S_gh_0);
-ampl.getParameter('Pwr_Gen_ini').setValues(RH.Ini.P_gh_0);
+ampl.getParameter('Status_ini').setValues(RH.Ini.S_g_0);
+ampl.getParameter('S_Down_ini').setValues(RH.Ini.D_g_0);
+ampl.getParameter('Pwr_Gen_ini').setValues(RH.Ini.P_g_0);
 ampl.getParameter('MUT_ini').setValues(RH.Ini.U_gh_0);
 ampl.getParameter('MDT_ini').setValues(RH.Ini.D_gh_0);
 
@@ -100,7 +101,7 @@ df = DataFrame(line_ampl,pwr_lim_ampl);
 df.setColumn('ULine',Line.Seq);
 df.setColumn('PwrLim',abs(min(Line.Capacity,Parameter.Base_power*deg2rad(Line.Max_Angle./Line.x))));
 df.addColumn('Susceptance',1./Line.x);
-
+df.addColumn('AngleLim',deg2rad(Line.Max_Angle));
 % setting data frame to set ULine 
 ampl.setData(df,'ULine');
 

@@ -84,6 +84,7 @@ CommandP=[CommandP;cellstr('\t')];
 %% Generator initial conditions
 CommandP=[CommandP;cellstr('### Generator Initial Consitions ###')];
 CommandP=[CommandP;cellstr('param Status_ini{UGen} >=0;')];
+CommandP=[CommandP;cellstr('param S_Down_ini{UGen} >=0;')];
 CommandP=[CommandP;cellstr('param Pwr_Gen_ini{UGen} >=0;')];
 CommandP=[CommandP;cellstr('param MUT_ini{UGen,1..24} >=0;')];
 CommandP=[CommandP;cellstr('param MDT_ini{UGen,1..24} >=0;')];
@@ -92,6 +93,7 @@ CommandP=[CommandP;cellstr('\t')];
 %% Interconnector parameter Declaration
 CommandP=[CommandP;cellstr('### Interconnector Parameters ###')];
 CommandP=[CommandP;cellstr('param PwrLim{ULine} >=0;')];
+CommandP=[CommandP;cellstr('param AngleLim{ULine} >=0;')];
 CommandP=[CommandP;cellstr('param Susceptance{ULine};')];
 CommandP=[CommandP;cellstr('\t')];
 
@@ -201,13 +203,17 @@ CommandC=[CommandC;cellstr('\t')];
 
 CommandC=[CommandC;cellstr('### Generator Ramping Constraints ###')];
 CommandC=[CommandC;cellstr(['subject to ramp_up {g in G_Syn, t in 2..T}:',...
-        'Ramp_up[g]<Max_pwr[g] ==> Pwr_Gen_var[g,t] - Pwr_Gen_var[g,t-1] <= Status_var[g,t]*Ramp_up[g];'])];
+        'Ramp_up[g]<Max_pwr[g] ==> Pwr_Gen_var[g,t] - Pwr_Gen_var[g,t-1] <= Status_var[g,t]*Ramp_up[g]',...
+        '+ (Min_pwr[g]-Ramp_up[g])*S_Up_var[g,t];'])];
 CommandC=[CommandC;cellstr(['subject to ramp_up_initial {g in G_Syn}:',...
-        'Ramp_up[g]<Max_pwr[g] ==> Pwr_Gen_var[g,1] - Pwr_Gen_ini[g] <= Status_var[g,1]*Ramp_up[g];'])];    
+        'Ramp_up[g]<Max_pwr[g] ==> Pwr_Gen_var[g,1] - Pwr_Gen_ini[g] <= Status_var[g,1]*Ramp_up[g]'...
+        '+ (Min_pwr[g]-Ramp_up[g])*S_Up_var[g,1];'])];    
 CommandC=[CommandC;cellstr(['subject to ramp_down {g in G_Syn, t in 2..T}:',...
-        'Ramp_down[g]<Max_pwr[g] ==> Pwr_Gen_var[g,t-1] - Pwr_Gen_var[g,t] <= Status_var[g,t-1]*Ramp_down[g];'])];
+        'Ramp_down[g]<Max_pwr[g] ==> Pwr_Gen_var[g,t-1] - Pwr_Gen_var[g,t] <= Status_var[g,t-1]*Ramp_down[g]',...
+        '+ (Min_pwr[g]-Ramp_down[g])*S_Down_var[g,t-1];'])];
 CommandC=[CommandC;cellstr(['subject to ramp_down_initial {g in G_Syn}:',...
-        'Ramp_down[g]<Max_pwr[g] ==> Pwr_Gen_ini[g] - Pwr_Gen_var[g,1] <= Status_ini[g]*Ramp_down[g];'])];
+        'Ramp_down[g]<Max_pwr[g] ==> Pwr_Gen_ini[g] - Pwr_Gen_var[g,1] <= Status_ini[g]*Ramp_down[g]',...
+        '+ (Min_pwr[g]-Ramp_down[g])*S_Down_ini[g];'])];
 CommandC=[CommandC;cellstr('\t')];
 
 CommandC=[CommandC;cellstr('### Generator Minimum Up/Down Time Constraints ###')];
@@ -227,6 +233,13 @@ CommandC=[CommandC;cellstr(['subject to max_ONunits {g in UGen, t in Time}:\n',.
         'Status_var[g,t] <= Units[g];'])]; 
 
 %% Interconnect constraints
+% DC power flow
+CommandC=[CommandC;cellstr('### DC line power ###')];
+CommandC=[CommandC;cellstr(['subject to power_flow {l in ULine, t in Time}:',...
+        ' Pwr_line_var[l,t] == Base_power*Susceptance[l]*',... 
+        '\n (sum{(l,n1) in Line_end1_Bus_links} Angle_bus_var[n1,t]',...
+        '- sum{(l,n2) in Line_end2_Bus_links} Angle_bus_var[n2,t]);'])];
+CommandC=[CommandC;cellstr('\n')];
 % Thermal limit 
 CommandC=[CommandC;cellstr('### Thermal limits of interconnect Constraints ###')];
 CommandC=[CommandC;cellstr(['subject to thermal_limit_ub {l in ULine, t in Time}:',...
@@ -234,13 +247,16 @@ CommandC=[CommandC;cellstr(['subject to thermal_limit_ub {l in ULine, t in Time}
 CommandC=[CommandC;cellstr(['subject to thermal_limit_lb {l in ULine, t in Time}:',...
         ' -PwrLim[l] <= Pwr_line_var[l,t] ;'])];
 CommandC=[CommandC;cellstr('\t')];
-
 % AC line angle stability
 CommandC=[CommandC;cellstr('### AC line angle stablility ###')];
-CommandC=[CommandC;cellstr(['subject to angle_limit {l in ULine, t in Time}:',...
-        ' Pwr_line_var[l,t] == Base_power*Susceptance[l]*',... 
-        '\n (sum{(l,n1) in Line_end1_Bus_links} Angle_bus_var[n1,t]',...
+CommandC=[CommandC;cellstr(['subject to angle_limit_ub {l in ULine, t in Time}:',...
+        ' (sum{(l,n1) in Line_end1_Bus_links} Angle_bus_var[n1,t]',...
+        '- sum{(l,n2) in Line_end2_Bus_links} Angle_bus_var[n2,t])<=AngleLim[l];'])];
+CommandC=[CommandC;cellstr(['subject to angle_limit_lb {l in ULine, t in Time}:',...
+        ' -AngleLim[l]<=(sum{(l,n1) in Line_end1_Bus_links} Angle_bus_var[n1,t]',...
         '- sum{(l,n2) in Line_end2_Bus_links} Angle_bus_var[n2,t]);'])];
+CommandC=[CommandC;cellstr(['subject to angle_zero {t in Time}:',...
+        ' Angle_bus_var[''B0001'',t]==0;'])];    
 CommandC=[CommandC;cellstr('\n')];
 
 %% Type2 (PV and Wind) generator additional constraints

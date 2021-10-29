@@ -339,10 +339,11 @@ for ll=1:N_sHrz
     
     % if it is first time initialise parameters
     if ll==1
-        RH.Ini.S_gh_0=zeros(Parameter.G,1);   % All generators are off
-        RH.Ini.P_gh_0=zeros(Parameter.G,1);   % Dispatch level of all gen is zero 
-        RH.Ini.U_gh_0=zeros(Parameter.G,24);
-        RH.Ini.D_gh_0=zeros(Parameter.G,24);
+        RH.Ini.S_g_0=zeros(Parameter.G,1);   % All generators are off
+        RH.Ini.P_g_0=zeros(Parameter.G,1);   % Dispatch level of all gen is zero
+        RH.Ini.D_g_0=zeros(Parameter.G,1);   % Initially all units are off line
+        RH.Ini.U_gh_0=zeros(Parameter.G,24); % For MUT
+        RH.Ini.D_gh_0=zeros(Parameter.G,24); % For MDT   
         RH.Ini.Eb_0=Bus.Battery.Minimum_Capacity;              % DR-battery SOH
         RH.Ini.Es_0=Uty_Strg.Minimum_Capacity;              % Utility-storage SOH
         RH.Ini.rc_0=zeros(Parameter.B,1);              % battery slack variable
@@ -351,8 +352,9 @@ for ll=1:N_sHrz
         end
     % use values from previous sub horizon    
     else                            
-        RH.Ini.S_gh_0=RH.Sol.Gen.Status(:,end);
-        RH.Ini.P_gh_0=round(RH.Sol.Gen.Power(:,end),2); 
+        RH.Ini.S_g_0=RH.Sol.Gen.Status(:,end);
+        RH.Ini.D_g_0=RH.Sol.Gen.S_Dn(:,end);
+        RH.Ini.P_g_0=round(RH.Sol.Gen.Power(:,end),2); 
         RH.Ini.U_gh_0=fliplr(RH.Sol.Gen.S_Up(:,end-24+1:end));
         RH.Ini.D_gh_0=fliplr(RH.Sol.Gen.S_Dn(:,end-24+1:end));
         if Parameter.en_Type3
@@ -406,7 +408,7 @@ end
 RH.Sol.Line.Diff_Angle=zeros(size(RH.Sol.Line.Power));
 if Parameter.Ntd_Lvl~=1 
     for ll=1:Parameter.L
-        RH.Sol.Line.Diff_Angle(ll,:)=rad2deg(RH.Sol.Bus.Angle(find(not(cellfun('isempty',strfind(Bus.Name,char(Line.End_1_Bus(ll)))))),:)...
+        RH.Sol.Line.Diff_Angle(ll,:)=(RH.Sol.Bus.Angle(find(not(cellfun('isempty',strfind(Bus.Name,char(Line.End_1_Bus(ll)))))),:)...
         -RH.Sol.Bus.Angle(find(not(cellfun('isempty',strfind(Bus.Name,char(Line.End_2_Bus(ll)))))),:));
     end
 end

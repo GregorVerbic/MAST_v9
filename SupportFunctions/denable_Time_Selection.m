@@ -1,4 +1,4 @@
-function denable_PowerFlowOptions(hObject,eventdata)   
+function denable_Time_Selection(hObject,eventdata)   
 %% Copyright Notice
 % Copyright ©2017. Shariq Riaz, Gregor Verbic. All Rights Reserved.
 % Permission to use, copy, modify, and distribute this software and 

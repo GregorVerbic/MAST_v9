@@ -1,4 +1,4 @@
-function callback_Update_CheckBox(hObject,eventdata)
+function callback_Update_PopUpMenu(hObject,eventdata)
 %% Copyright Notice
 % Copyright ©2017. Shariq Riaz, Gregor Verbic. All Rights Reserved.
 % Permission to use, copy, modify, and distribute this software and 
@@ -22,28 +22,3 @@ function callback_Update_CheckBox(hObject,eventdata)
 % PROVIDED HEREUNDER IS PROVIDED "AS IS". AUTHORS HAS NO OBLIGATION TO 
 % PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 %%
-    hObject.UserData = struct(strjoin(fieldnames(hObject.UserData)),hObject.Value);    
-    
-    if strcmp(hObject.Tag,'CDR')
-        denable_RPV_HB(hObject.Value)
-   
-    elseif strcmp(hObject.Tag,'CSR')
-        denable_ESR(hObject.Value);
-    
-    elseif (strcmp(hObject.Tag,'CPC') |  strcmp(hObject.Tag,'CPP'))    
-        denable_PlotOptions(hObject,eventdata);
-    
-    elseif (strcmp(hObject.Tag,'CNF') |  strcmp(hObject.Tag,'CRF') | strcmp(hObject.Tag,'CSF'))
-        denable_FigureOptions(hObject,eventdata);
-        
-    elseif (strcmp(hObject.Tag,'CCR_pf') |  strcmp(hObject.Tag,'CSR_pf'))    
-        denable_PowerFlowOptions(hObject,eventdata);
-        
-    elseif (strcmp(hObject.Tag,'CST_pf') |  strcmp(hObject.Tag,'CAT_pf'))
-        denable_Time_Selection(hObject,eventdata);
-        
-%     elseif (strcmp(hObject.Tag,'CSB_pf'))
-%         denable_SlackBus_Selection(hObject,eventdata);
-        
-    end
-end

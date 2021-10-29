@@ -56,7 +56,7 @@ function gui_PowerFlow(hObject,eventdata)
     h_Tcr=create_Text(h_Prs,[xsp, ph-n*(oh+ysp)-ytp, ow, oh],['Current Results:']);
     h_CBcr=create_CheckBox(h_Prs,[ow-.5, ph-n*(oh+ysp)-ytp, ow, oh],'CCR_pf');
 %     h_CBcr.UserData=struct('Current_results',1);
-    h_CBcr.Value=1;
+%     h_CBcr.Value=1;
     h_CBcr.Callback=@callback_Update_CheckBox;
     
     n=n+1;
@@ -64,18 +64,30 @@ function gui_PowerFlow(hObject,eventdata)
     h_Tsr=create_Text(h_Prs,[xsp, ph-n*(oh+ysp)-ytp, ow, oh],['Saved Results:']);
     h_CBsr =create_CheckBox(h_Prs,[ow-.5, ph-n*(oh+ysp)-ytp, ow, oh],'CSR_pf');
 %     h_CBsr.UserData=struct('Saved_results',0);
-    h_CBsr.Value=0;
+%     h_CBsr.Value=0;
     h_CBsr.Callback=@callback_Update_CheckBox;
     h_Esr=create_Edit(h_Prs,[ow, ph-n*(oh+ysp)-ytp, ow, oh],'ESR_pf');
     h_Esr.Callback=@callback_LoadResults;
     h_PBsr =create_PushButton(h_Prs,[pw-0.25*ow-.5*xsp, ph-n*(oh+ysp)-ytp, 0.25*ow, oh],'Load','PSR_pf');
-    h_PBsr.Callback=@callback_LoadResults;
+    h_PBsr.Callback=@callback_LoadResults; 
     
-    denable_PowerFlowOptions(h_CBcr);
+    % inidcate current simulation results are available or not
+    h=findobj('Tag','PRS'); % get current results
+    if isempty(h.UserData)
+        h_CBcr.Value=0;
+        h_CBsr.Value=1;
+        denable_PowerFlowOptions(h_CBsr);
+    else          
+        Data=h.UserData;
+        h_CBcr.Value=1;
+        h_CBsr.Value=0;
+        denable_PowerFlowOptions(h_CBcr);
+    end
+
     
   %% Time Selection
     pw=Fig_sz_cm(1)-.5;
-    ph=3;
+    ph=2.5;
     
     h_Pts=create_Panel(h_Fpowerflow,[.25 Fig_sz_cm(2)-2-ph pw ph],'Time Scale Setting');
     % Panel object parameters
@@ -130,8 +142,7 @@ function gui_PowerFlow(hObject,eventdata)
 %     h_CBsts.UserData=struct('Selective_Time',0);
     h_CBsts.Value=0;
     h_CBsts.Callback=@callback_Update_CheckBox;
-    n=n+1;
-    
+    n=n+1;    
     denable_Time_Selection(h_CBats);
     
     % Simulate for all time vector
@@ -140,9 +151,37 @@ function gui_PowerFlow(hObject,eventdata)
 %     h_CBats.UserData=struct('All_slots',1);
 %     h_CBats.Value=1;
 %     h_CBats.Callback=@callback_Update_CheckBox;
-    
-    
 
+
+  %% Slack Bus selection
+    pw=Fig_sz_cm(1)-.5;
+    ph=1.5;
+    
+    h_Pss=create_Panel(h_Fpowerflow,[.25 Fig_sz_cm(2)-2-2.5-ph pw ph],'Slack Bus');
+    % Panel object parameters
+    ow=1.5;    % object width
+    oh=0.6;    % object height
+    xsp=0.1;    % x-dir sepration
+    ysp=0.1;    % y-dir sepration
+    ytp=0.3;    % top gap     
+    n=1;        % object number
+
+    h_Tsb=create_Text(h_Pss,[xsp, ph-n*(oh+ysp)-ytp, 2*ow, oh],['Largest infeed as Slack bus:']);
+    h_CBsb=create_CheckBox(h_Pss,[2*ow+xsp, ph-n*(oh+ysp)-ytp+.1, ow, oh],'CSB_pf');
+    h_CBsb.UserData=struct('Select_Largest_Infeed',1);
+    h_CBsb.Value=0;
+    h_CBsb.Callback=@callback_Update_CheckBox;
+%     n=n+1;         
+%     h_Tss=create_Text(h_Pss,[xsp+n*(ow+xsp)+.2, ph-(n-1)*(oh+ysp)-ytp, 5*ow, oh],['Slack Bus:']);
+%     h_Dss=create_ListBox(h_Pss,[2*xsp+ow+n*(ow+xsp)+.2, ph-(n-0)*(oh+ysp)-ytp+.25, 1.75*ow, 1.75*oh],'DSBS_pf');
+%     h_Dss.UserData = struct('Slack_Bus','');
+%     if h_CBcr.Value==1
+%         h_Dss.String = Data.Model.Gen.Name;
+%     else
+%         h_Dss.String ={''};
+%     end
+%     h_Dss.Callback=@callback_Update_Dlist;
+%     denable_SlackBus_Selection(h_CBsb);
     
     %% DC opf
     ow=2.5;    % object width

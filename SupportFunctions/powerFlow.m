@@ -116,8 +116,11 @@ ed=find(Time_axis==Horizon(end));
 for hh=st:ed
     if sum(Pg(:,hh))>0
         mpc_temp=mpc;
-        % finding largest infeed and making it slack if not selected already
-        if isempty(find(mpc_temp.bus(:,2)==3))        
+        % selecting slack bus
+        hss=findobj('Tag','CSB_pf');
+        
+        % finding largest infeed and making it slack if not selected already 
+        if isempty(find(mpc_temp.bus(:,2)==3))       
             temp1=find((Data.Model.Gen.Power_Rating.*Sg(:,hh))==max((Data.Model.Gen.Power_Rating.*Sg(:,hh))));
             if length(temp1)>1
                 temp2=find(min(Pg(temp1,hh))==Pg(:,hh));
@@ -130,10 +133,32 @@ for hh=st:ed
                 gg=temp1;
             end
             mpc_temp.bus(find(strcmp(Data.Model.Bus.Name,Data.Model.Gen.Bus(gg))),2)=3;
-        elseif length(find(mpc_temp.bus(:,2)==3))>1
+        end
+        % detecting if multiple slacks are selected
+        if length(find(mpc_temp.bus(:,2)==3))>1
             fprintf('****** Multiple slack buses detected ******')
             return;        
         end
+        % forcing largest infeed as slack
+        if  hss.Value==1            
+            mpc_temp.bus(find(mpc_temp.bus(:,2)==3),2)=2; % converting the slack bus to PV bus
+            % selecteing largest infeed as slack
+            temp1=find((Data.Model.Gen.Power_Rating.*Sg(:,hh))==max((Data.Model.Gen.Power_Rating.*Sg(:,hh))));
+            if length(temp1)>1
+                temp2=find(min(Pg(temp1,hh))==Pg(:,hh));
+                if length(temp2)>1
+                    gg=temp2(1);
+                else
+                    gg=temp2;
+                end
+            else
+                gg=temp1;
+            end
+            mpc_temp.bus(find(strcmp(Data.Model.Bus.Name,Data.Model.Gen.Bus(gg))),2)=3;
+        end
+        %printing slack bus selection
+        temp=find(mpc_temp.bus(:,2)==3);
+        fprintf('**Slack Bus is "%s"**\n',char(Data.Model.Bus.Seq(temp)));
         % printing info regarding the solve interval
         if hh==0
             fprintf('solving for hour %5.0f : %2.0f \n',1,0)
